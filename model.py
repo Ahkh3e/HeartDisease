@@ -1,24 +1,32 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn import tree,model_selection
-
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+import os
 train = pd.read_csv('train.csv')
 
-target = train["DEATH_EVENT"].values
-features_names = ["age","anaemia","creatinine_phosphokinase","diabetes","ejection_fraction","high_blood_pressure","platelets","serum_creatinine","serum_sodium","sex","smoking"]
-features = train[features_names].values
+x = train.loc[:,"age":"time"]
+y = train.loc[:,["DEATH_EVENT"]]
 
-generalized_tree = tree.DecisionTreeClassifier(
-    random_state = 1,
-    max_depth = 7,
-    min_samples_split = 2
+x_train,x_test,y_train,y_test = train_test_split(x,y,
+    test_size=0.2,
+    random_state=2
 )
-generalized_tree_ = generalized_tree.fit(features, target)
+forest_classifier = RandomForestClassifier(
+    max_depth=3,
+    random_state=1
+)
+forest_classifier.fit(x_train, y_train)
 
-print(generalized_tree_.score(features,target))
+pred=forest_classifier.predict(x_test)
+print(forest_classifier.score(x_test,y_test))
 
-scores = model_selection.cross_val_score(generalized_tree, features,target, scoring = 'accuracy' , cv =50)
-print (scores)
-print (scores.mean())
 
-tree.export_graphviz(generalized_tree_ , feature_names = features_names, out_file = 'tree.dot')
+gradientboost_clf = GradientBoostingClassifier(
+max_depth=2,
+random_state=1)
+gradientboost_clf.fit(x_train,y_train)
+gradientboost_pred = gradientboost_clf.predict(x_test)
+
+print (gradientboost_clf.score(x_test,y_test))
